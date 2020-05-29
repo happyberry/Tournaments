@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <p>{{ length }}</p>
+{% if user.is_authenticated %}
+    Cześć, {{ user.username }}!
+    <p><a href="{% url 'logout' %}">Wyloguj</a></p>
+    <p><a href="{% url 'password_reset' %}">Zmień hasło</a></p>
+{% else %}
+    <a href="{% url 'login' %}">Zaloguj</a>
+{% endif %}
+    <form action="/" method="POST">
+    {% csrf_token %}
+        <label>Wyszukaj turniej:</label>
+        <input type="text" name="tournament_name" value="{{ name }}">
+        <input type="submit" name="search" value="Wyszukaj">
+    </form>
+{% if length != 0 %}
+    {% for obj in object_list %}
+<div class = "container">
+  <div class = "col-md-6">
+    <br>
+    <a href = "tournament/{{ obj.id }}">{{obj.name}}</a>
+    <p>{{obj.start_date}} - {{ obj.end_date }}</p>
+    <hr>
+  </div>
+</div>
+{% endfor %}
+<div class = "container">
+  <div class = "col-md-6">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination">
+        <li class="page-item">  <!-- Jump to Prvious Page -->
+          {% if object_list.has_previous %}
+             <li class="previous"> <a href="?page={{ object_list.previous_page_number }}">
+             <span aria-hidden="true">‹</span></a>
+          {% else %}
+              <li class="previous disabled"><a>‹</a>
+          {% endif %}
+        </li>
+         {% for page in object_list.paginator.page_range %}
+            {% if page == object_list.number %}
+            <li class="pg active"><a class = "page_number" href="?page={{page}}">{{page}}</a>
+            {% else %}
+            <li class="pg"><a class = "page_number" href="?page={{page}}">{{page}}</a>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item">  <!-- Jump to Next Page -->
+          {% if object_list.has_next %}
+            <li class="previous"> <a href="?page={{ object_list.next_page_number }}">›</a></li>
+          {% else %}
+              <li class="next disabled"><a>›</a>
+          {% endif %}
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+    {% else %}
+    <p>Brak informacji o zbliżających się turniejach</p>
+    {% endif %}
+{% endblock %}

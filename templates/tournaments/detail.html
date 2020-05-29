@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tourn.name }}{% endblock %}
+
+{% block content %}
+  <h1>{{ tourn.name }}</h1><br>
+    <p>Dyscsyplina: {{ tourn.discipline }}</p>
+    <p>Organizator: {{ organizer }}</p>
+    <p>Czas rozgrywek: {{ tourn.start_date }} - {{ tourn.end_date }}</p>
+    <p>Limit zgłoszeń: {{ tourn.participants_limit }}</p>
+    <p>Liczba zgłoszonych zawodników: {{ participants }}</p>
+    <p>Koniec przyjmowania zgłoszeń: {{ tourn.registration_deadline }}</p>
+    {% for logo in logos %}
+        <img src="{{ logo }}">
+    {% endfor %}
+{% endblock %}
