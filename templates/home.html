@@ -8,8 +8,9 @@
     Cześć, {{ user.username }}!
     <p><a href="{% url 'logout' %}">Wyloguj</a></p>
     <p><a href="{% url 'password_reset' %}">Zmień hasło</a></p>
+    <p><a href="addtourn">Utwórz nowy turniej</a></p>
 {% else %}
-    <a href="{% url 'login' %}">Zaloguj</a>
+    <p><a href="{% url 'login' %}">Zaloguj</a></p>
 {% endif %}
     <form action="/" method="POST">
     {% csrf_token %}
@@ -23,7 +24,7 @@
   <div class = "col-md-6">
     <br>
     <a href = "tournament/{{ obj.id }}">{{obj.name}}</a>
-    <p>{{obj.start_date}} - {{ obj.end_date }}</p>
+    <p>{{obj.start_date}}</p>
     <hr>
   </div>
 </div>

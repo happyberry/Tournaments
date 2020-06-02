@@ -2,7 +2,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
-from .forms import SignupForm, SearchForm
+from .forms import *
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -65,7 +65,7 @@ def post_list(request):
         name = request.POST["tournament_name"]
     else:
         name = ""
-    queryset_list = Tournament.objects.filter(end_date__gte=datetime.date.today()).order_by("start_date")
+    queryset_list = Tournament.objects.filter(start_date__gte=datetime.date.today()).order_by("start_date")
     if len(name) != 0:
         print("name", name)
         queryset_list = queryset_list.filter(name__contains=name)
@@ -86,6 +86,7 @@ def post_list(request):
 
 
 def tournament_info(request, id):
+    user = request.user
     try:
         tourn = Tournament.objects.get(id=id)
     except Tournament.DoesNotExist:
@@ -107,6 +108,51 @@ def tournament_info(request, id):
         'tourn': tourn,
         'logos': logos,
         'organizer': name,
-        'participants': participants
+        'participants': participants,
+        'user': user
     }
     return render(request, 'tournaments/detail.html', context)
+
+
+def add_tournament(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = AddTournamentForm(request.POST)
+            if form.is_valid():
+                tournament = form.save(commit=False)
+                tournament.organizer = request.user
+                tournament.save()
+                current_site = get_current_site(request)
+                return redirect('/../tournament/' + str(tournament.id))
+        else:
+            form = AddTournamentForm()
+        return render(request, 'tournaments/add.html', {'form': form})
+    else:
+        return redirect('login')
+
+def add_logo(request, id):
+    try:
+        tourn = Tournament.objects.get(id=id)
+    except Tournament.DoesNotExist:
+        raise Http404("Nie ma takiego turnieju")
+    try:
+        logos = Logo.objects.filter(tournament=tourn)
+    except Logo.DoesNotExist:
+        logos = []
+    if request.user.is_authenticated:
+        if request.user.id == tourn.organizer_id:
+            if request.method == 'POST':
+                form = AddLogoForm(request.POST, request.FILES)
+                if form.is_valid():
+                    image = request.FILES['obraz']
+                    logo = Logo(image, tourn)
+                    logos.append(logo)
+                    form = AddLogoForm()
+                    return render(request, 'tournaments/add_logo.html', {'logos': logos, 'form':form})
+            else:
+                form = AddLogoForm()
+        else:
+            return redirect('/../tournament/' + str(tourn.id))
+        return render(request, 'tournaments/add_logo.html', {'logos': logos, 'form':form})
+    else:
+        return redirect('login')

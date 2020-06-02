@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from .validators import validate_file_extension
 
 
 # Create your models here.
@@ -8,9 +9,8 @@ from django.conf import settings
 class Tournament(models.Model):
     name = models.CharField(max_length=50)
     discipline = models.CharField(max_length=50)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    registration_deadline = models.DateField()
+    start_date = models.DateTimeField()
+    registration_deadline = models.DateTimeField()
     participants_limit = models.IntegerField()
     city = models.CharField(max_length=20)
     street = models.CharField(max_length=50)

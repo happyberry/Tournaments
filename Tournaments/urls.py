@@ -24,5 +24,8 @@ urlpatterns = [
     path('signup/', views.signup, name="signup"),
     path('accounts/', include('django.contrib.auth.urls')), # new
     path('tournament/<int:id>/', views.tournament_info, name='tournament'),
+    #path('tournament/edit/<int:id>/', views.tournament_edit, name='tournament_edit'),
+    path('tournament/<int:id>/add_logo/', views.add_logo, name='tournament_logo'),
+    path('addtourn/', views.add_tournament, name='addTournament'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 ]

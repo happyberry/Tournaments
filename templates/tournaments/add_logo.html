@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+    <html lang="pl">
+    <head>
+        <title>Signup</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    </head>
+    <body>
+{% block content %}
+    {% if logos.count != 0 %}
+        <h4>Dotychczas dodane loga:</h4>
+    {% endif %}
+    {% for logo in logos %}
+        <img src="{{ logo.image.url }}">
+    {% endfor %}
+  <form method="post">
+    {% csrf_token %}
+      {{ form }}
+      <button type="submit">Dodaj logo</button>
+  </form>
+    <a href="detail.html">Zakończ</a>
+{% endblock %}
+    </body>
+</html>
