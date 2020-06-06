@@ -12,14 +12,14 @@
         <h4>Dotychczas dodane loga:</h4>
     {% endif %}
     {% for logo in logos %}
-        <img src="{{ logo.image.url }}">
+        <img src="/../{{ logo.image_src }}" alt="logo sponsora" height="100">
     {% endfor %}
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
       {{ form }}
       <button type="submit">Dodaj logo</button>
   </form>
-    <a href="detail.html">Zakończ</a>
+    <a href="../">Zakończ</a>
 {% endblock %}
     </body>
 </html>

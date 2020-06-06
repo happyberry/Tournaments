@@ -3,9 +3,14 @@
 {% block title %}{{ tourn.name }}{% endblock %}
 
 {% block content %}
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
   <h1>{{ tourn.name }}</h1><br>
-    {% if participants <= tourn.participants_limit %}
-        <a href="join/{{ tourn.id }}">Zapisz się</a>
+    {% if participants < tourn.participants_limit %}
+        <a href="join">Zapisz się</a>
     {% endif %}
     <p>Dyscsyplina: {{ tourn.discipline }}</p>
     <p>Organizator: {{ organizer }}</p>
@@ -13,13 +18,19 @@
     <p>Limit zgłoszeń: {{ tourn.participants_limit }}</p>
     <p>Liczba zgłoszonych zawodników: {{ participants }}</p>
     <p>Koniec przyjmowania zgłoszeń: {{ tourn.registration_deadline }}</p>
-    {% for logo in logos %}
-        <img src="{{ logo.image }}">
-    {% endfor %}
     <iframe width="600" height="500" id="gmap_canvas" src="https://maps.google.com/maps?q={{ tourn.city }}%20{{tourn.street}}%20{{tourn.number}}&t=&z=13&ie=UTF8&iwloc=&output=embed"
 frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
+    {% if logos.count != 0 %}
+        <h4>Loga sponsorów:</h4>
+    {% for logo in logos %}
+        <img src="/../{{ logo.image_src }}" alt="logo_sponsora" height="100">
+    {% endfor %}
+    {% endif %}
+    <br>
     {% if user.id == tourn.organizer_id %}
-        <a href="tournament/edit/{{ tourn.id }}">Edytuj informacje</a>
-        <a href="/tournament/{{ tourn.id }}/add_logo/">Dodaj logo sponsora</a>
+        {% if show == True %}
+            <a href="edit">Edytuj informacje</a>
+            <a href="/tournament/{{ tourn.id }}/add_logo/">Dodaj logo sponsora</a>
+        {% endif %}
     {% endif %}
 {% endblock %}

@@ -19,7 +19,7 @@ class Tournament(models.Model):
 
 
 class Logo(models.Model):
-    image = models.ImageField(upload_to='logo')
+    image_src = models.CharField(max_length=200, unique=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
 
 
@@ -28,6 +28,9 @@ class Participation(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     license = models.IntegerField()
     rank = models.IntegerField()
+
+    class Meta:
+        unique_together = ('tournament', 'license', 'rank')
 
 
 class Game(models.Model):
