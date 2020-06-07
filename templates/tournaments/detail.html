@@ -8,8 +8,9 @@
         <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
     {% endfor %}
     {% endif %}
+    <p><a href ="/../../">Strona główna</a></p>
   <h1>{{ tourn.name }}</h1><br>
-    {% if participants < tourn.participants_limit %}
+    {% if participants < tourn.participants_limit and show == True %}
         <a href="join">Zapisz się</a>
     {% endif %}
     <p>Dyscsyplina: {{ tourn.discipline }}</p>

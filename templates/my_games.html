@@ -7,19 +7,10 @@
     Cześć, {{ user.username }}! Witaj w systemie Tournaments
     <p><a href="{% url 'logout' %}">Wyloguj</a>
     <a href="{% url 'password_reset' %}">Zmień hasło</a></p>
-        <p><a href="addtourn">Utwórz nowy turniej</a>
-        <a href="mytourns">Moje turnieje</a>
-        <a href="mygames">Moje spotkania</a></p>
-{% else %}
-    <p><a href="{% url 'login' %}">Zaloguj</a></p>
-    <p><a href="{% url 'signup' %}">Zarejestruj się</a></p>
+        <p><a href="{% url 'add_tournament' %}">Utwórz nowy turniej</a>
+        <a href="{% url 'my_tourns' %}">Moje turnieje</a>
+        <a href="{% url 'home' %}">Strona główna</a></p>
 {% endif %}
-    <form action="/" method="POST">
-    {% csrf_token %}
-        <label>Wyszukaj turniej:</label>
-        <input type="text" name="tournament_name" value="{{ name }}">
-        <input type="submit" name="search" value="Wyszukaj">
-    </form>
 {% if length != 0 %}
     {% for obj in object_list %}
 <div class = "container">
@@ -62,6 +53,6 @@
   </div>
 </div>
     {% else %}
-    <p>Brak informacji o zbliżających się turniejach</p>
+    <p>Brak informacji o nadchodzących spotkaniach</p>
     {% endif %}
 {% endblock %}

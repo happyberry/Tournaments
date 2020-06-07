@@ -8,6 +8,11 @@
     </head>
     <body>
 {% block content %}
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
   <h2>Edytuj informacje o turnieju {{ tourn.name }}</h2>
   <form method="post">
     {% csrf_token %}

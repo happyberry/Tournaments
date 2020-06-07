@@ -127,3 +127,5 @@ EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'

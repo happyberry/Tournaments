@@ -23,23 +23,39 @@ class AddTournamentForm(ModelForm):
         model = Tournament
         fields = ['name', 'discipline', 'start_date', 'registration_deadline', 'participants_limit', 'city', 'street',
                   'number']
-        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia',
-                  'registration_deadline': 'Koniec rejestracji',
+        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia (DD.MM.YYYY HH:MM:SS)',
+                  'registration_deadline': 'Koniec rejestracji (DD.MM.YYYY HH:MM:SS)',
                   'participants_limit': 'Limit uczestników', 'city': 'Miasto', 'street': 'Ulica', 'number': 'Nr domu'}
 
-    @property
-    def clean(self):
+    '''def clean(self):
         cleaned_data = super().clean()
         if cleaned_data['registration_deadline'] > cleaned_data['start_date']:
-            print("problem1")
             raise forms.ValidationError('Zapisy na turniej muszą zakończyć się przed jego rozpoczęciem')
         if cleaned_data['registration_deadline'] <= timezone.now():
             raise forms.ValidationError('Nie mozna dodać turnieju z przeszłości')
-            print("problem2")
         if cleaned_data['participants_limit'] <= 0:
-            print("problem3")
             raise forms.ValidationError('Limit zawodników musi być większy od 0')
-        return cleaned_data
+        return cleaned_data'''
+    def clean_registration_deadline(self):
+        try:
+            start = self.cleaned_data['start_date']
+        except KeyError:
+            raise forms.ValidationError()
+        try:
+            registration = self.cleaned_data['registration_deadline']
+        except KeyError:
+            raise forms.ValidationError()
+        if registration >= start:
+            raise forms.ValidationError('Zapisy na turniej muszą zakończyć się przed jego rozpoczęciem')
+        if registration <= timezone.now():
+            raise forms.ValidationError('Nie mozna dodać turnieju z przeszłości')
+        return registration
+
+    def clean_participants_limit(self):
+        limit = int(self.cleaned_data['participants_limit'])
+        if limit <= 0:
+            raise forms.ValidationError('Limit zawodników musi być większy od 0')
+        return limit
 
 
 class EditTournamentForm(ModelForm):
@@ -58,14 +74,29 @@ class EditTournamentForm(ModelForm):
                   'registration_deadline': 'Koniec rejestracji',
                   'participants_limit': 'Limit uczestników', 'city': 'Miasto', 'street': 'Ulica', 'number': 'Nr domu'}
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data['participants_limit'] <= 0:
+    def clean_registration_deadline(self):
+        try:
+            start = self.cleaned_data['start_date']
+        except KeyError:
+            raise forms.ValidationError()
+        try:
+            registration = self.cleaned_data['registration_deadline']
+        except KeyError:
+            raise forms.ValidationError()
+        if registration >= start:
+            raise forms.ValidationError('Zapisy na turniej muszą zakończyć się przed jego rozpoczęciem')
+        if registration <= timezone.now():
+            raise forms.ValidationError('Nie mozna ustawić daty turnieju z przeszłości')
+        return registration
+
+    def clean_participants_limit(self):
+        limit = self.cleaned_data['participants_limit']
+        if limit <= 0:
             raise forms.ValidationError('Limit zawodników musi być większy od 0')
-        if cleaned_data['participants_limit'] < self.participants:
+        if limit < self.participants:
             raise forms.ValidationError(
                 'Limit zawodników nie może być mniejszy niż zgłoszona dotychczas liczba (' + str(self.participants) + ')')
-        return cleaned_data
+        return limit
 
 
 class AddLogoForm(forms.Form):

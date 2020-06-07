@@ -27,6 +27,8 @@ urlpatterns = [
     path('tournament/<int:id>/join/', views.join_tournament, name='tournament_join'),
     path('tournament/<int:id>/edit/', views.edit_tournament, name='tournament_edit'),
     path('tournament/<int:id>/add_logo/', views.add_logo, name='tournament_logo'),
-    path('addtourn/', views.add_tournament, name='addTournament'),
+    path('addtourn/', views.add_tournament, name='add_tournament'),
+    path('mytourns/', views.my_list, name='my_tourns'),
+    path('mygames/', views.my_games, name='my_games'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 ]

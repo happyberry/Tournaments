@@ -11,7 +11,12 @@
   <h2>Utwórz turniej</h2>
   <form method="post">
     {% csrf_token %}
-      {{ form }}
+      {% for field in form %}
+          {{ field.label }}
+          {{ field }}
+          {{ field.errors }}
+          <br>
+    {% endfor %}
       <button type="submit">Utwórz</button>
   </form>
 {% endblock %}

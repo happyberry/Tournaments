@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
@@ -81,10 +82,49 @@ def post_list(request):
         queryset = paginator.page(paginator.num_pages)
     context = {
         "object_list": queryset,
-        "length": len(queryset),
-        'name': name
+        'name': name,
+        'length': len(queryset_list)
     }
     return render(request, "home.html", context)
+
+
+def my_list(request):
+    participations = Participation.objects.filter(user=request.user)
+    queryset_list = []
+    for p in participations:
+        queryset_list.append(p.tournament)
+    #queryset_list = Tournament.objects.filter(start_date__gte=datetime.date.today()).order_by("start_date")
+    #queryset_list = queryset_list.filter()
+    paginator = Paginator(queryset_list, 10)  # posts per page
+    page = request.GET.get('page')
+    try:
+        queryset = paginator.page(page)
+    except PageNotAnInteger:
+        queryset = paginator.page(1)
+    except EmptyPage:
+        queryset = paginator.page(paginator.num_pages)
+    context = {
+        "object_list": queryset,
+        'length': len(queryset_list)
+    }
+    return render(request, "my.html", context)
+
+
+def my_games(request):
+    queryset_list = Game.objects.filter(Q(user1=request.user) | Q(user2=request.user))
+    paginator = Paginator(queryset_list, 10)  # posts per page
+    page = request.GET.get('page')
+    try:
+        queryset = paginator.page(page)
+    except PageNotAnInteger:
+        queryset = paginator.page(1)
+    except EmptyPage:
+        queryset = paginator.page(paginator.num_pages)
+    context = {
+        "object_list": queryset,
+        'length': len(queryset_list)
+    }
+    return render(request, "my_games.html", context)
 
 
 def tournament_info(request, id):
@@ -149,12 +189,20 @@ def edit_tournament(request, id):
         pass
     if request.user.is_authenticated:
         if request.method == 'POST':
-            if request.user.id == tourn.organizer_id:
+            if request.user.id == tourn.organizer_id and tourn.registration_deadline > timezone.now():
                 form = EditTournamentForm(request.POST, instance=tourn, participants=participants_number, start=tourn.start_date)
+
                 if form.is_valid():
                     tournament = form.save(commit=False)
                     tournament.save()
                     return redirect('/../tournament/' + str(tournament.id))
+            else:
+                if tourn.registration_deadline <= timezone.now():
+                    messages.add_message(request, messages.INFO, 'Nie możesz edytować informacji o turnieju, który już się rozpoczął')
+                else:
+                    messages.add_message(request, messages.INFO,'Nie możesz edytować informacji o turnieju, którego organizatorem nie jesteś')
+                form = EditTournamentForm(instance=tourn, participants=participants_number, start=tourn.start_date)
+                return render(request, 'tournaments/edit.html', {'form': form, 'participants_number': participants_number, 'tourn': tourn})
         else:
             form = EditTournamentForm(instance=tourn, participants=participants_number, start=tourn.start_date)
         return render(request, 'tournaments/edit.html', {'form': form, 'participants_number': participants_number, 'tourn': tourn})
@@ -217,8 +265,11 @@ def join_tournament(request, id):
     if request.user.is_authenticated:
         if request.method == 'POST':
             form = AddParticipationForm(request.POST, tournament=tourn)
-            if participants_number >= tourn.participants_limit:
-                messages.add_message(request, messages.INFO, 'Przepraszamy, limit uczestników został już osiągnięty')
+            if participants_number >= tourn.participants_limit or tourn.registration_deadline <=  timezone.now():
+                if participants_number >= tourn.participants_limit:
+                    messages.add_message(request, messages.INFO, 'Przepraszamy, limit uczestników został już osiągnięty')
+                else:
+                    messages.add_message(request, messages.INFO, 'Przepraszamy, termin zgłoszeń upłynął')
                 try:
                     logos = Logo.objects.filter(tournament=tourn)
                 except Logo.DoesNotExist:
