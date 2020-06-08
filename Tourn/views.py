@@ -13,7 +13,9 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from .models import Tournament, Game, Logo, Participation
 from django.contrib import messages
+from random import shuffle
 import datetime
+import math
 import random
 
 
@@ -127,6 +129,116 @@ def my_games(request):
     return render(request, "my_games.html", context)
 
 
+def nextPlayer(x):
+    out = []
+    length = len(x) * 2 + 1
+    for i in x:
+        out.append(i)
+        out.append(length - i)
+    return out
+
+
+def seed(number):
+    rounds = round(math.log(number) / math.log(2) - 1)
+    pls = [1, 2]
+    for i in range(rounds):
+        pls = nextPlayer(pls)
+    return pls
+
+
+def generate_bracket1(tourn, participants_number):
+    n = round(math.log(participants_number, 2))
+    k = participants_number - 2 ** n
+    if k == 0:
+        games_counter = 2**(n-1)
+        limit = 2**n
+    else:
+        games_counter = 2**n
+        limit = 2**(n+1)
+    bracket_sequence = seed(limit)
+    for s in range(len(bracket_sequence)):
+        bracket_sequence[s] -= 1
+    print(bracket_sequence)
+    participants = list(Participation.objects.filter(tournament=tourn).order_by('rank'))
+    games = []
+    for i in range(1, limit):
+        days = n + 2 - round(math.log(i, 2))
+        newgame = Game(matchno=i,date=tourn.start_date + datetime.timedelta(days=days), tournament=tourn)
+        games.append(newgame)
+    for i in range(0, len(bracket_sequence), 2):
+        print(bracket_sequence[i], bracket_sequence[i+1])
+        if bracket_sequence[i] < participants_number and bracket_sequence[i+1] < participants_number:
+            games[games_counter-1].user1 = participants[bracket_sequence[i]].user
+            games[games_counter-1].user2 = participants[bracket_sequence[i+1]].user
+            print(games_counter, participants[bracket_sequence[i]].user.first_name, participants[bracket_sequence[i+1]].user.first_name)
+            games_counter += 1
+        elif bracket_sequence[i] < participants_number and bracket_sequence[i+1] >= participants_number:
+            if games_counter % 2 == 0:
+                games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i]].user
+                #games[(games_counter // 2) - 1].score = 3
+            else:
+                games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i]].user
+                #games[(games_counter // 2) - 1].score = 3
+            print(games_counter//2, participants[bracket_sequence[i]].user.first_name)
+            games_counter += 1
+        elif bracket_sequence[i] >= participants_number and bracket_sequence[i+1] < participants_number:
+            if games_counter % 2 == 0:
+                games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i+1]].user
+                #games[(games_counter // 2) - 1].score = 3
+            else:
+                games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i + 1]].user
+                #games[(games_counter // 2) - 1].score = 3
+            print(games_counter // 2, participants[bracket_sequence[i+1]].user.first_name)
+            games_counter += 1
+    for i in range(len(games)):
+        games[i].save()
+
+
+def generate_bracket(tourn, participants_number):
+    n = round(math.log(participants_number, 2))
+    k = participants_number - 2**n
+    participants1 = list(Participation.objects.filter(tournament=tourn).order_by('rank')[:2*k])
+    participants2 = list(Participation.objects.filter(tournament=tourn).order_by('rank')[2*k:])
+    print("n:", n)
+    print("k:", k)
+    print("len(participants1):", participants1.count())
+    games = []
+    if k != 0:
+        limit = 2**(n+1)
+    else:
+        limit = 2**n
+    all = limit-1
+    for i in range(1, limit):
+        days = n + 2 - round(math.log(i, 2))
+        newgame = Game(matchno=i+1,date=tourn.start_date + datetime.timedelta(days=days))
+        games.append(newgame)
+    closed1 = []
+    closed2 = []
+    for i in range(0, len(participants1), 2):
+        games[all - i // 2 - 1].user1 = participants1[i]
+        games[all - i // 2 - 1].score = 0
+        games[all - i // 2 - 1].user2 = participants1[i+1]
+        games[all - i // 2 - 1].score = 0
+        if (i//2) % 2 == 0:
+            closed2.append((all - i // 2 - 1)//2)
+        else:
+            closed1.append((all - i // 2 - 1)//2)
+    participantcounter = 0
+    for i in range(2**(n-2), 2**(n-1), 1):
+        if participantcounter < len(participants2):
+            if i not in closed1:
+                games[i-1].user1 = participants2[participantcounter]
+                games[i-1].score = 0
+                participantcounter += 1
+        if participantcounter < len(participants2):
+            if i not in closed2:
+                games[i-1].user2 = participants2[participantcounter]
+                games[i-1].score = 0
+                participantcounter += 1
+    for i in range(len(games)):
+        games[i].save()
+
+
 def tournament_info(request, id):
     user = request.user
     try:
@@ -149,6 +261,8 @@ def tournament_info(request, id):
     show = False
     if tourn.registration_deadline > timezone.now():
         show = True
+    #if show == False and Game.objects.filter(tournament=tourn).count() == 0:
+    generate_bracket1(tourn, participants)
     context = {
         'tourn': tourn,
         'logos': logos,
@@ -226,7 +340,6 @@ def add_logo(request, id):
                 if form.is_valid():
                     image = request.FILES['obraz']
                     filename = str(tourn.id) + str(tourn.name)
-                    #print(filename)
                     filename += request.FILES['obraz'].name
                     handle_uploaded_file(image, filename)
                     logo = Logo(image_src='Tourn/static/' + filename, tournament=tourn)

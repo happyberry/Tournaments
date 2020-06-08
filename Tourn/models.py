@@ -35,11 +35,11 @@ class Participation(models.Model):
 
 class Game(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    user1 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="user1", blank=True)
-    user2 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="user2", blank=True)
-    score1 = models.IntegerField(blank=True)
-    score2 = models.IntegerField(blank=True)
-    score = models.IntegerField(blank=True)
+    user1 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="user1", blank=True, null=True)
+    user2 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="user2", blank=True, null=True)
+    score1 = models.IntegerField(blank=True, null=True)
+    score2 = models.IntegerField(blank=True, null=True)
+    score = models.IntegerField(blank=True, null=True)
     date = models.DateField()
     matchno = models.IntegerField()
 
