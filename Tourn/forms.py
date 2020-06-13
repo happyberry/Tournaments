@@ -23,8 +23,8 @@ class AddTournamentForm(ModelForm):
         model = Tournament
         fields = ['name', 'discipline', 'start_date', 'registration_deadline', 'participants_limit', 'city', 'street',
                   'number']
-        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia (DD.MM.YYYY HH:MM:SS)',
-                  'registration_deadline': 'Koniec rejestracji (DD.MM.YYYY HH:MM:SS)',
+        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia (DD.MM.RRRR GG:MM:SS)',
+                  'registration_deadline': 'Koniec rejestracji (DD.MM.RRRR GG:MM:SS)',
                   'participants_limit': 'Limit uczestników', 'city': 'Miasto', 'street': 'Ulica', 'number': 'Nr domu'}
 
     '''def clean(self):
@@ -53,8 +53,8 @@ class AddTournamentForm(ModelForm):
 
     def clean_participants_limit(self):
         limit = int(self.cleaned_data['participants_limit'])
-        if limit <= 0:
-            raise forms.ValidationError('Limit zawodników musi być większy od 0')
+        if limit <= 4:
+            raise forms.ValidationError('Minimalna liczba zawodników to 4')
         return limit
 
 
@@ -91,8 +91,8 @@ class EditTournamentForm(ModelForm):
 
     def clean_participants_limit(self):
         limit = self.cleaned_data['participants_limit']
-        if limit <= 0:
-            raise forms.ValidationError('Limit zawodników musi być większy od 0')
+        if limit <= 3:
+            raise forms.ValidationError('Minimalna liczba zawodników to 4')
         if limit < self.participants:
             raise forms.ValidationError(
                 'Limit zawodników nie może być mniejszy niż zgłoszona dotychczas liczba (' + str(self.participants) + ')')
@@ -105,9 +105,11 @@ class AddLogoForm(forms.Form):
 
 class AddParticipationForm(ModelForm):
     tournament = Tournament()
+    user = User()
 
     def __init__(self, *args, **kwargs):
         self.tournament = kwargs.pop('tournament')  # cache the user object you pass in
+        self.user = kwargs.pop('user')
         super(ModelForm, self).__init__(*args, **kwargs)
 
     class Meta:
@@ -115,11 +117,22 @@ class AddParticipationForm(ModelForm):
         exclude = ['user', 'tournament']
         labels = {'license': "Nr licencji", 'rank': "Aktualny ranking"}
 
-    def clean(self):
+    '''def clean(self):
         cleaned_data = super().clean()
         try:
-            participants = Participation.objects.filter(tournament=self.tournament)
-            participants_number = len(participants)
+            participant = Participation.objects.filter(tournament=self.tournament).filter(user=self.user)
+            if participant.count() != 0:
+                raise forms.ValidationError('Nie możesz zapisać się ponownie na ten sam turniej')
         except Participation.DoesNotExist:
             pass
-        return cleaned_data
+        return cleaned_data'''
+
+class SubmitScoreForm(forms.Form):
+    winner = forms.ModelChoiceField(label='Select the winner', queryset=User.objects.all(),)
+
+    def __init__(self, *args, **kwargs):
+        matchid = kwargs.pop('matchid', None)  # cache the user object you pass
+        id_list = [Game.objects.get(id=matchid).user1_id, Game.objects.get(id=matchid).user2_id]
+        queryset = User.objects.filter(id__in=id_list)
+        super(SubmitScoreForm, self).__init__(*args, **kwargs)
+        self.fields['winner'].queryset = queryset

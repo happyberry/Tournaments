@@ -163,7 +163,7 @@ def generate_bracket1(tourn, participants_number):
     games = []
     for i in range(1, limit):
         days = n + 2 - round(math.log(i, 2))
-        newgame = Game(matchno=i,date=tourn.start_date + datetime.timedelta(days=days), tournament=tourn)
+        newgame = Game(matchno=i,date=tourn.start_date + datetime.timedelta(days=days), tournament=tourn, score = 0, score1 = 0, score2 = 0)
         games.append(newgame)
     for i in range(0, len(bracket_sequence), 2):
         print(bracket_sequence[i], bracket_sequence[i+1])
@@ -175,23 +175,27 @@ def generate_bracket1(tourn, participants_number):
         elif bracket_sequence[i] < participants_number and bracket_sequence[i+1] >= participants_number:
             if games_counter % 2 == 0:
                 games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i]].user
-                #games[(games_counter // 2) - 1].score = 3
+                #games[(games_counter // 2) - 1].score = 0
             else:
                 games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i]].user
-                #games[(games_counter // 2) - 1].score = 3
+                #games[(games_counter // 2) - 1].score = 0
             print(games_counter//2, participants[bracket_sequence[i]].user.first_name)
             games_counter += 1
         elif bracket_sequence[i] >= participants_number and bracket_sequence[i+1] < participants_number:
             if games_counter % 2 == 0:
                 games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i+1]].user
-                #games[(games_counter // 2) - 1].score = 3
+                #games[(games_counter // 2) - 1].score = 0
             else:
                 games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i + 1]].user
-                #games[(games_counter // 2) - 1].score = 3
+                #games[(games_counter // 2) - 1].score = 0
             print(games_counter // 2, participants[bracket_sequence[i+1]].user.first_name)
             games_counter += 1
     for i in range(len(games)):
         games[i].save()
+    queryset = Game.objects.filter(matchno__gte=limit//2, user2__isnull=True, user1__isnull=True)
+    for game in queryset:
+        game.score=-1
+        game.save()
 
 
 def generate_bracket(tourn, participants_number):
@@ -261,15 +265,20 @@ def tournament_info(request, id):
     show = False
     if tourn.registration_deadline > timezone.now():
         show = True
-    #if show == False and Game.objects.filter(tournament=tourn).count() == 0:
-    generate_bracket1(tourn, participants)
+    try:
+        games = Game.objects.filter(tournament=tourn).order_by('-matchno')
+    except Game.DoesNotExist:
+        games = []
+    if show == False and Game.objects.filter(tournament=tourn).count() == 0:
+        generate_bracket1(tourn, participants)
     context = {
         'tourn': tourn,
         'logos': logos,
         'organizer': name,
         'participants': participants,
         'user': user,
-        'show': show
+        'show': show,
+        'games': games
     }
     return render(request, 'tournaments/detail.html', context)
 
@@ -315,8 +324,9 @@ def edit_tournament(request, id):
                     messages.add_message(request, messages.INFO, 'Nie możesz edytować informacji o turnieju, który już się rozpoczął')
                 else:
                     messages.add_message(request, messages.INFO,'Nie możesz edytować informacji o turnieju, którego organizatorem nie jesteś')
-                form = EditTournamentForm(instance=tourn, participants=participants_number, start=tourn.start_date)
-                return render(request, 'tournaments/edit.html', {'form': form, 'participants_number': participants_number, 'tourn': tourn})
+                return redirect('../')
+                #form = EditTournamentForm(instance=tourn, participants=participants_number, start=tourn.start_date)
+                #return render(request, 'tournaments/edit.html', {'form': form, 'participants_number': participants_number, 'tourn': tourn})
         else:
             form = EditTournamentForm(instance=tourn, participants=participants_number, start=tourn.start_date)
         return render(request, 'tournaments/edit.html', {'form': form, 'participants_number': participants_number, 'tourn': tourn})
@@ -377,13 +387,13 @@ def join_tournament(request, id):
         pass
     if request.user.is_authenticated:
         if request.method == 'POST':
-            form = AddParticipationForm(request.POST, tournament=tourn)
+            form = AddParticipationForm(request.POST, tournament=tourn, user=request.user)
             if participants_number >= tourn.participants_limit or tourn.registration_deadline <=  timezone.now():
                 if participants_number >= tourn.participants_limit:
-                    messages.add_message(request, messages.INFO, 'Przepraszamy, limit uczestników został już osiągnięty')
+                    messages.add_message(request, messages.INFO, 'Przepraszamy, limit uczestników został już osiągnięty. Zgłoszenie odrzucone.')
                 else:
-                    messages.add_message(request, messages.INFO, 'Przepraszamy, termin zgłoszeń upłynął')
-                try:
+                    messages.add_message(request, messages.INFO, 'Przepraszamy, termin zgłoszeń upłynął. Zgłoszenie odrzucone')
+                '''try:
                     logos = Logo.objects.filter(tournament=tourn)
                 except Logo.DoesNotExist:
                     logos = []
@@ -404,16 +414,73 @@ def join_tournament(request, id):
                 'organizer': name,
                 'participants': participants,
                 'user': request.user,
-                'show': show})
-                #return redirect('/../')
+                'show': show})'''
+                return redirect('../')
             if form.is_valid():
+                try:
+                    participant = Participation.objects.filter(tournament=tourn).filter(user=request.user)
+                    if participant.count() != 0:
+                        messages.add_message(request, messages.INFO, 'Zgłoszenie odrzucone. Nie możesz zapisać się ponownie na ten sam turniej')
+                        return redirect('../')
+                except Participation.DoesNotExist:
+                    pass
                 participation = form.save(commit=False)
                 participation.user = request.user
                 participation.tournament = tourn
                 participation.save()
-                return redirect('/../')
+                messages.add_message(request, messages.INFO, "Gratulacje, zgłoszenie przyjęte! Możesz śledzić ten turniej w zakładce 'Moje spotkania'")
+                return redirect('../')
         else:
-            form = AddParticipationForm(tournament=tourn)
+            form = AddParticipationForm(tournament=tourn, user=request.user)
         return render(request, 'tournaments/join.html', {'form': form})
     else:
         return redirect('login')
+
+
+def submit_score(request, score):
+    try:
+        match = Game.objects.get(id=score)
+    except Game.DoesNotExist:
+        raise Http404("Nie ma takiego meczu")
+    if request.user.is_authenticated:
+        if request.user == match.user1 or request.user == match.user2:
+            if match.score != 0:
+                messages.add_message(request, messages.INFO, 'Wynik dla tego spotkania został już zapisany')
+                return redirect('../')
+            if request.method == 'POST':
+                form = SubmitScoreForm(request.POST, matchid=score)
+                if form.is_valid():
+                    winner = form.cleaned_data['winner']
+                    print(winner)
+                    print(match.user1.username)
+                    if request.user == match.user1:
+                        if winner == match.user1:
+                            print("angery")
+                            match.score1 = 1
+                        else:
+                            print("very-angery")
+                            match.score1 = 2
+                    else:
+                        if winner == match.user2:
+                            match.score2 = 2
+                        else:
+                            match.score2 = 1
+                    if match.score1 != 0 and match.score2 != 0:
+                        if match.score1 == match.score2:
+                            match.score = match.score1
+                        else:
+                            match.score1 = 0
+                            match.score2 = 0
+                    match.save()
+                    messages.add_message(request, messages.INFO,
+                                         'Wynik spotkania został zapisany')
+                    return redirect('../' + str(match.tournament_id))
+            else:
+                form = SubmitScoreForm(matchid=score)
+        else:
+            messages.add_message(request, messages.INFO, 'Nie możesz edytować wyniku tego meczu. Operacja dozwolona tylko dla uczestników danego spotkania')
+            return redirect('../')
+        return render(request, 'tournaments/score.html', {'form':form})
+    else:
+        return redirect('login')
+

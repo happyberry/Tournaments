@@ -16,8 +16,21 @@
 <div class = "container">
   <div class = "col-md-6">
     <br>
-    <a href = "tournament/{{ obj.id }}">{{obj.name}}</a>
-    <p>{{obj.start_date}}</p>
+    <p>{{ obj.tournament.name }}
+        {% if obj.matchno <= 7 %}
+            {% if obj.matchno >= 4 %}
+                - Ćwiećfinał
+            {% else %}
+                {% if obj.matchno >= 2 %}
+                    - Półfinał
+                {% else %}
+                    - Finał
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        {{obj.date}} <br>
+        {{ obj.user1.first_name }} {{ obj.user1.last_name }} - {{ obj.user2.first_name }} {{ obj.user2.last_name }}
+        </p>
     <hr>
   </div>
 </div>

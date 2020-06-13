@@ -31,4 +31,5 @@ urlpatterns = [
     path('mytourns/', views.my_list, name='my_tourns'),
     path('mygames/', views.my_games, name='my_games'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
+    path('tournament/add/<int:score>', views.submit_score, name='add_score')
 ]

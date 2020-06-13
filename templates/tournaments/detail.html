@@ -35,6 +35,35 @@ frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
         {% endif %}
     {% endif %}
     {% if show == False %}
-        <p>Drabinka here</p>
+        {% for match in games %}
+            <p>
+            {% if match.matchno <= 7 and match.score != -1 %}
+                {% if match.matchno >= 4 %}
+                Ćwierćfinał:
+                {% else %}
+                    {% if match.matchno >= 2 %}
+                        Półfinał:
+                    {% else %}
+                        Finał:
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            {% if match.user1 == user or match.user2 == user %}
+                {% if match.score == 0 %}
+                    <a href="{% url 'add_score' score=match.id %}">{{ match.date }}</a> {{ match.user1.first_name }} {{ match.user1.last_name}} - {{ match.user2.first_name }} {{ match.user2.last_name}}
+                {% endif %}
+            {% else %}
+                {% if match.score != -1 %}
+                    {{ match.date }} {{ match.user1.first_name }} {{ match.user1.last_name }} - {{ match.user2.first_name }} {{ match.user2.last_name}}
+                {% endif %}
+            {% endif %}
+            {% if match.score == 1 %}
+                Zwycięzca: {{ match.user1.first_name }} {{ match.user1.last_name}}
+            {% endif %}
+            {% if match.score == 2 %}
+                Zwycięzca: {{ match.user2.first_name }} {{ match.user2.last_name}}
+            {% endif %}
+            </p>
+        {% endfor %}
     {% endif %}
 {% endblock %}
