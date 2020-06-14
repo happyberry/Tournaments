@@ -1,31 +1,35 @@
 {% extends 'base.html' %}
-
+{% block stylesheet %}
+    <link href="../Tourn/static/base_style.css" rel="stylesheet">
+{% endblock %}
 {% block title %}Home{% endblock %}
-
-{% block content %}
-{% if user.is_authenticated %}
-    Cześć, {{ user.username }}! Witaj w systemie Tournaments
-    <p><a href="{% url 'logout' %}">Wyloguj</a>
-    <a href="{% url 'password_reset' %}">Zmień hasło</a></p>
-        <p><a href="addtourn">Utwórz nowy turniej</a>
-        <a href="mytourns">Moje turnieje</a>
-        <a href="mygames">Moje spotkania</a></p>
+<link href="../Tourn/static/base_style.css" rel="stylesheet">
+{% block user %}
+  {% if user.is_authenticated %}
+    <div class="user-pane"><div id="greeting" class="left-block">Cześć, {{ user.username }}! Witaj w systemie Tournaments!</div>
+    <div class="right-block"><a class="userclicks" href="{% url 'logout' %}">Wyloguj</a> |
+    <a class="userclicks" href="{% url 'password_reset' %}">Zmień hasło</a></div></div>
 {% else %}
-    <p><a href="{% url 'login' %}">Zaloguj</a></p>
-    <p><a href="{% url 'signup' %}">Zarejestruj się</a></p>
+    <div class="user-pane"><div id="greeting" class="left-block">Tournaments - śledź rozgrywki online</div>
+        <div class="right-block">
+            <a class="userclicks" href="{% url 'login' %}">Zaloguj</a> |
+            <a class="userclicks" href="{% url 'signup' %}">Zarejestruj się</a>
+        </div>
+    </div>
 {% endif %}
-    <form action="/" method="POST">
+{% endblock %}
+{% block content %}
+    <form class="search-engine" action="/" method="POST">
     {% csrf_token %}
-        <label>Wyszukaj turniej:</label>
-        <input type="text" name="tournament_name" value="{{ name }}">
-        <input type="submit" name="search" value="Wyszukaj">
+        <input class="textfield" type="text" name="tournament_name" value="{{ name }}">
+        <input class="button" type="submit" name="search" value="Szukaj turnieju">
     </form>
 {% if length != 0 %}
     {% for obj in object_list %}
 <div class = "container">
   <div class = "col-md-6">
     <br>
-    <a href = "tournament/{{ obj.id }}">{{obj.name}}</a>
+    <a class="torun_name" href = "tournament/{{ obj.id }}">{{obj.name}}</a>
     <p>{{obj.start_date}}</p>
     <hr>
   </div>
@@ -34,7 +38,7 @@
 <div class = "container">
   <div class = "col-md-6">
     <nav aria-label="Page navigation example">
-      <ul class="pagination">
+      <span class="pagination">
         <li class="page-item">  <!-- Jump to Prvious Page -->
           {% if object_list.has_previous %}
              <li class="previous"> <a href="?page={{ object_list.previous_page_number }}">
@@ -45,7 +49,7 @@
         </li>
          {% for page in object_list.paginator.page_range %}
             {% if page == object_list.number %}
-            <li class="pg active"><a class = "page_number" href="?page={{page}}">{{page}}</a>
+            <li class="pg-active"><a class = "page_number" href="?page={{page}}">{{page}}</a>
             {% else %}
             <li class="pg"><a class = "page_number" href="?page={{page}}">{{page}}</a>
             {% endif %}
@@ -57,7 +61,7 @@
               <li class="next disabled"><a>›</a>
           {% endif %}
         </li>
-      </ul>
+      </span>
     </nav>
   </div>
 </div>

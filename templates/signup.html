@@ -4,10 +4,11 @@
         <title>Signup</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../Tourn/static/form_style.css">
     </head>
     <body>
 {% block content %}
+    <div class="center-items,add-padding">
   <h2>Zarejestruj się</h2>
   <form method="post">
     {% csrf_token %}
@@ -27,6 +28,7 @@
       {% endfor %}
     <button type="submit">Zarejestruj się</button>
   </form>
+    </div>
 {% endblock %}
     </body>
 </html>

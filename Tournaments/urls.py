@@ -28,8 +28,9 @@ urlpatterns = [
     path('tournament/<int:id>/edit/', views.edit_tournament, name='tournament_edit'),
     path('tournament/<int:id>/add_logo/', views.add_logo, name='tournament_logo'),
     path('addtourn/', views.add_tournament, name='add_tournament'),
-    path('mytourns/', views.my_list, name='my_tourns'),
+    path('mytourns/', views.my_tourns, name='my_tourns'),
     path('mygames/', views.my_games, name='my_games'),
+    path('myorgtourns/', views.my_tourns_org, name='my_orgtourns'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path('tournament/add/<int:score>', views.submit_score, name='add_score')
 ]

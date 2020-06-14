@@ -1,21 +1,27 @@
 <!DOCTYPE html>
     <html lang="pl">
     <head>
-        <title>Sign in</title>
+        <title>Zaloguj</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../Tourn/static/form_style.css">
     </head>
     <body>
+    <main class="center-items">
+    <div class="center-items">
 {% block content %}
-  <h2>Login</h2>
-  <form method="post">
+  <h2>Zaloguj się</h2>
+  <form class="center-items" method="post">
     {% csrf_token %}
       {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form><br>
+    <button class="orange-button" type="submit">Zaloguj się</button>
+  </form>
 {% endblock %}
-    <a href = "../password_reset">Zapomniałem hasła</a>
-    <a href ="/../../">Strona główna</a>
+    </div>
+        <img src="../../Tourn/static/tennis.png" width="20%">
+    <div><a class="orange-button" href = "../password_reset">Zapomniałem hasła</a>
+    <a class="orange-button" href ="{% url 'home' %}">Strona główna</a>
+    <a class="orange-button" href ="{% url 'signup' %}">Zarejestruj się</a></div>
+    </main>
     </body>
 </html>

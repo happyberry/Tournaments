@@ -1,21 +1,25 @@
 {% extends 'base.html' %}
-
-{% block title %}Home{% endblock %}
-
-{% block content %}
-{% if user.is_authenticated %}
-    Cześć, {{ user.username }}! Witaj w systemie Tournaments
-    <p><a href="{% url 'logout' %}">Wyloguj</a>
-    <a href="{% url 'password_reset' %}">Zmień hasło</a></p>
-        <p><a href="{% url 'add_tournament' %}">Utwórz nowy turniej</a>
-        <a href="{% url 'my_tourns' %}">Moje turnieje</a>
-        <a href="{% url 'home' %}">Strona główna</a></p>
+{% block stylesheet %}
+     <link href="../Tourn/static/base_style.css" rel="stylesheet">
+{% endblock %}
+{% block title %}Moje turnieje{% endblock %}
+{% block user %}
+  {% if user.is_authenticated %}
+    <div class="user-pane"><div id="greeting" class="left-block">Tournaments - śledź rozgrywki online</div>
+    <div class="right-block"><a class="userclicks" href="{% url 'logout' %}">Wyloguj</a> |
+    <a class="userclicks" href="{% url 'password_reset' %}">Zmień hasło</a></div></div>
+{% else %}
+    <div class="user-pane"><div id="greeting" class="left-block">Tournaments - śledź rozgrywki online</div>
+        <div class="right-block">
+            <a class="userclicks" href="{% url 'login' %}">Zaloguj</a> |
+            <a class="userclicks" href="{% url 'signup' %}">Zarejestruj się</a>
+        </div>
+    </div>
 {% endif %}
+{% endblock %}
+{% block content %}
 {% if length != 0 %}
     {% for obj in object_list %}
-<div class = "container">
-  <div class = "col-md-6">
-    <br>
     <p>{{ obj.tournament.name }}
         {% if obj.matchno <= 7 %}
             {% if obj.matchno >= 4 %}
@@ -31,41 +35,8 @@
         {{obj.date}} <br>
         {{ obj.user1.first_name }} {{ obj.user1.last_name }} - {{ obj.user2.first_name }} {{ obj.user2.last_name }}
         </p>
-    <hr>
-  </div>
-</div>
 {% endfor %}
-<div class = "container">
-  <div class = "col-md-6">
-    <nav aria-label="Page navigation example">
-      <ul class="pagination">
-        <li class="page-item">  <!-- Jump to Prvious Page -->
-          {% if object_list.has_previous %}
-             <li class="previous"> <a href="?page={{ object_list.previous_page_number }}">
-             <span aria-hidden="true">‹</span></a>
-          {% else %}
-              <li class="previous disabled"><a>‹</a>
-          {% endif %}
-        </li>
-         {% for page in object_list.paginator.page_range %}
-            {% if page == object_list.number %}
-            <li class="pg active"><a class = "page_number" href="?page={{page}}">{{page}}</a>
-            {% else %}
-            <li class="pg"><a class = "page_number" href="?page={{page}}">{{page}}</a>
-            {% endif %}
-        {% endfor %}
-        <li class="page-item">  <!-- Jump to Next Page -->
-          {% if object_list.has_next %}
-            <li class="previous"> <a href="?page={{ object_list.next_page_number }}">›</a></li>
-          {% else %}
-              <li class="next disabled"><a>›</a>
-          {% endif %}
-        </li>
-      </ul>
-    </nav>
-  </div>
-</div>
     {% else %}
-    <p>Brak informacji o nadchodzących spotkaniach</p>
+    <p class="tourntitle">Brak informacji o nadchodzących spotkaniach</p>
     {% endif %}
 {% endblock %}

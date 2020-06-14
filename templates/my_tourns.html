@@ -19,7 +19,7 @@
 {% endblock %}
 {% block content %}
 {% if length != 0 %}
-    <h2 class="tourntitle">Moje turnieje (organizacja)</h2>
+    <h2 class="tourntitle">Moje turnieje (rejestracja)</h2>
     {% for obj in object_list %}
 <div class = "container">
   <div class = "col-md-6">
@@ -61,6 +61,6 @@
   </div>
 </div>
     {% else %}
-    <p class="tourntitle">Nie jesteś jeszcze organizatorem żadnego turnieju. Kliknij 'Utwórz nowy turniej' aby zgłosić organizację turnieju.</p>
+    <p class="tourntitle">Nie jesteś jeszcze uczestnikiem żadnego turnieju. Przejdź na stronę główną aby wyszukać turniej, którego rejestracja trwa.</p>
     {% endif %}
 {% endblock %}

@@ -53,8 +53,8 @@ class AddTournamentForm(ModelForm):
 
     def clean_participants_limit(self):
         limit = int(self.cleaned_data['participants_limit'])
-        if limit <= 4:
-            raise forms.ValidationError('Minimalna liczba zawodników to 4')
+        if limit <= 1:
+            raise forms.ValidationError('Minimalna liczba zawodników to 2')
         return limit
 
 
@@ -91,8 +91,8 @@ class EditTournamentForm(ModelForm):
 
     def clean_participants_limit(self):
         limit = self.cleaned_data['participants_limit']
-        if limit <= 3:
-            raise forms.ValidationError('Minimalna liczba zawodników to 4')
+        if limit <= 1:
+            raise forms.ValidationError('Minimalna liczba zawodników to 2')
         if limit < self.participants:
             raise forms.ValidationError(
                 'Limit zawodników nie może być mniejszy niż zgłoszona dotychczas liczba (' + str(self.participants) + ')')
@@ -128,7 +128,7 @@ class AddParticipationForm(ModelForm):
         return cleaned_data'''
 
 class SubmitScoreForm(forms.Form):
-    winner = forms.ModelChoiceField(label='Select the winner', queryset=User.objects.all(),)
+    winner = forms.ModelChoiceField(label='Select the winner', queryset=User.objects.all())
 
     def __init__(self, *args, **kwargs):
         matchid = kwargs.pop('matchid', None)  # cache the user object you pass
@@ -136,3 +136,4 @@ class SubmitScoreForm(forms.Form):
         queryset = User.objects.filter(id__in=id_list)
         super(SubmitScoreForm, self).__init__(*args, **kwargs)
         self.fields['winner'].queryset = queryset
+        self.fields['winner'].label_from_instance = lambda obj: "%s" % obj.get_full_name()

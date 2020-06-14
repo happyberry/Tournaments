@@ -73,7 +73,7 @@ def post_list(request):
     queryset_list = Tournament.objects.filter(start_date__gte=datetime.date.today()).order_by("start_date")
     if len(name) != 0:
         print("name", name)
-        queryset_list = queryset_list.filter(name__contains=name)
+        queryset_list = queryset_list.filter(Q(name__contains=name) | Q(city__contains=name))
     paginator = Paginator(queryset_list, 10)  # posts per page
     page = request.GET.get('page')
     try:
@@ -90,13 +90,11 @@ def post_list(request):
     return render(request, "home.html", context)
 
 
-def my_list(request):
-    participations = Participation.objects.filter(user=request.user)
+def my_tourns(request):
+    participations = Participation.objects.filter(user=request.user).order_by('-tournament__start_date')
     queryset_list = []
     for p in participations:
         queryset_list.append(p.tournament)
-    #queryset_list = Tournament.objects.filter(start_date__gte=datetime.date.today()).order_by("start_date")
-    #queryset_list = queryset_list.filter()
     paginator = Paginator(queryset_list, 10)  # posts per page
     page = request.GET.get('page')
     try:
@@ -109,11 +107,11 @@ def my_list(request):
         "object_list": queryset,
         'length': len(queryset_list)
     }
-    return render(request, "my.html", context)
+    return render(request, "my_tourns.html", context)
 
 
 def my_games(request):
-    queryset_list = Game.objects.filter(Q(user1=request.user) | Q(user2=request.user))
+    queryset_list = Game.objects.filter(Q(user1=request.user) | Q(user2=request.user)).filter(date__gte=timezone.now()).order_by('-date')
     paginator = Paginator(queryset_list, 10)  # posts per page
     page = request.GET.get('page')
     try:
@@ -127,6 +125,26 @@ def my_games(request):
         'length': len(queryset_list)
     }
     return render(request, "my_games.html", context)
+
+
+def my_tourns_org(request):
+    tourns = Tournament.objects.filter(organizer=request.user).order_by('-start_date')
+    tourns_list = list(tourns)
+    paginator = Paginator(tourns_list, 10)  # posts per page
+    page = request.GET.get('page')
+    print(tourns_list)
+    print(len(tourns_list))
+    try:
+        queryset = paginator.page(page)
+    except PageNotAnInteger:
+        queryset = paginator.page(1)
+    except EmptyPage:
+        queryset = paginator.page(paginator.num_pages)
+    context = {
+        "object_list": queryset,
+        "length": len(tourns_list)
+    }
+    return render(request, "my.html", context)
 
 
 def nextPlayer(x):
@@ -146,7 +164,9 @@ def seed(number):
     return pls
 
 
-def generate_bracket1(tourn, participants_number):
+def generate_bracket(tourn, participants_number):
+    if participants_number <= 1:
+        return
     n = round(math.log(participants_number, 2))
     k = participants_number - 2 ** n
     if k == 0:
@@ -166,29 +186,25 @@ def generate_bracket1(tourn, participants_number):
         newgame = Game(matchno=i,date=tourn.start_date + datetime.timedelta(days=days), tournament=tourn, score = 0, score1 = 0, score2 = 0)
         games.append(newgame)
     for i in range(0, len(bracket_sequence), 2):
-        print(bracket_sequence[i], bracket_sequence[i+1])
+        #print(bracket_sequence[i], bracket_sequence[i+1])
         if bracket_sequence[i] < participants_number and bracket_sequence[i+1] < participants_number:
             games[games_counter-1].user1 = participants[bracket_sequence[i]].user
             games[games_counter-1].user2 = participants[bracket_sequence[i+1]].user
-            print(games_counter, participants[bracket_sequence[i]].user.first_name, participants[bracket_sequence[i+1]].user.first_name)
+            #print(games_counter, participants[bracket_sequence[i]].user.first_name, participants[bracket_sequence[i+1]].user.first_name)
             games_counter += 1
         elif bracket_sequence[i] < participants_number and bracket_sequence[i+1] >= participants_number:
             if games_counter % 2 == 0:
                 games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i]].user
-                #games[(games_counter // 2) - 1].score = 0
             else:
                 games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i]].user
-                #games[(games_counter // 2) - 1].score = 0
-            print(games_counter//2, participants[bracket_sequence[i]].user.first_name)
+            #print(games_counter//2, participants[bracket_sequence[i]].user.first_name)
             games_counter += 1
         elif bracket_sequence[i] >= participants_number and bracket_sequence[i+1] < participants_number:
             if games_counter % 2 == 0:
                 games[(games_counter // 2) - 1].user1 = participants[bracket_sequence[i+1]].user
-                #games[(games_counter // 2) - 1].score = 0
             else:
                 games[(games_counter // 2) - 1].user2 = participants[bracket_sequence[i + 1]].user
-                #games[(games_counter // 2) - 1].score = 0
-            print(games_counter // 2, participants[bracket_sequence[i+1]].user.first_name)
+            #print(games_counter // 2, participants[bracket_sequence[i+1]].user.first_name)
             games_counter += 1
     for i in range(len(games)):
         games[i].save()
@@ -196,51 +212,6 @@ def generate_bracket1(tourn, participants_number):
     for game in queryset:
         game.score=-1
         game.save()
-
-
-def generate_bracket(tourn, participants_number):
-    n = round(math.log(participants_number, 2))
-    k = participants_number - 2**n
-    participants1 = list(Participation.objects.filter(tournament=tourn).order_by('rank')[:2*k])
-    participants2 = list(Participation.objects.filter(tournament=tourn).order_by('rank')[2*k:])
-    print("n:", n)
-    print("k:", k)
-    print("len(participants1):", participants1.count())
-    games = []
-    if k != 0:
-        limit = 2**(n+1)
-    else:
-        limit = 2**n
-    all = limit-1
-    for i in range(1, limit):
-        days = n + 2 - round(math.log(i, 2))
-        newgame = Game(matchno=i+1,date=tourn.start_date + datetime.timedelta(days=days))
-        games.append(newgame)
-    closed1 = []
-    closed2 = []
-    for i in range(0, len(participants1), 2):
-        games[all - i // 2 - 1].user1 = participants1[i]
-        games[all - i // 2 - 1].score = 0
-        games[all - i // 2 - 1].user2 = participants1[i+1]
-        games[all - i // 2 - 1].score = 0
-        if (i//2) % 2 == 0:
-            closed2.append((all - i // 2 - 1)//2)
-        else:
-            closed1.append((all - i // 2 - 1)//2)
-    participantcounter = 0
-    for i in range(2**(n-2), 2**(n-1), 1):
-        if participantcounter < len(participants2):
-            if i not in closed1:
-                games[i-1].user1 = participants2[participantcounter]
-                games[i-1].score = 0
-                participantcounter += 1
-        if participantcounter < len(participants2):
-            if i not in closed2:
-                games[i-1].user2 = participants2[participantcounter]
-                games[i-1].score = 0
-                participantcounter += 1
-    for i in range(len(games)):
-        games[i].save()
 
 
 def tournament_info(request, id):
@@ -270,7 +241,9 @@ def tournament_info(request, id):
     except Game.DoesNotExist:
         games = []
     if show == False and Game.objects.filter(tournament=tourn).count() == 0:
-        generate_bracket1(tourn, participants)
+        generate_bracket(tourn, participants)
+        if Game.objects.filter(tournament=tourn).count() == 0:
+            messages.add_message(request, messages.INFO, 'Nie zgłoszono wystarczającej liczby zawodników by rozpocząć rozgrywki')
     context = {
         'tourn': tourn,
         'logos': logos,
@@ -393,28 +366,6 @@ def join_tournament(request, id):
                     messages.add_message(request, messages.INFO, 'Przepraszamy, limit uczestników został już osiągnięty. Zgłoszenie odrzucone.')
                 else:
                     messages.add_message(request, messages.INFO, 'Przepraszamy, termin zgłoszeń upłynął. Zgłoszenie odrzucone')
-                '''try:
-                    logos = Logo.objects.filter(tournament=tourn)
-                except Logo.DoesNotExist:
-                    logos = []
-                try:
-                    organizer = User.objects.get(id=tourn.organizer_id)
-                    name = organizer.first_name + " " + organizer.last_name
-                except User.DoesNotExist:
-                    name = "Nieznany"
-                try:
-                    participants = Participation.objects.filter(tournament=tourn).count()
-                except Participation.DoesNotExist:
-                    participants = 0
-                show = False
-                if tourn.registration_deadline > timezone.now():
-                    show = True
-                return render(request, 'tournaments/detail.html', {'tourn': tourn,
-                'logos': logos,
-                'organizer': name,
-                'participants': participants,
-                'user': request.user,
-                'show': show})'''
                 return redirect('../')
             if form.is_valid():
                 try:
@@ -444,15 +395,13 @@ def submit_score(request, score):
         raise Http404("Nie ma takiego meczu")
     if request.user.is_authenticated:
         if request.user == match.user1 or request.user == match.user2:
-            if match.score != 0:
-                messages.add_message(request, messages.INFO, 'Wynik dla tego spotkania został już zapisany')
+            if match.score != 0 or (match.score1 != 0 and match.user1 == request.user) or (match.score2 != 0 and match.user2 == request.user):
+                messages.add_message(request, messages.INFO, 'Wynik dla tego spotkania został już przez Ciebie zapisany. Oczekuj na potwierdzenie przeciwnika')
                 return redirect('../')
             if request.method == 'POST':
                 form = SubmitScoreForm(request.POST, matchid=score)
                 if form.is_valid():
                     winner = form.cleaned_data['winner']
-                    print(winner)
-                    print(match.user1.username)
                     if request.user == match.user1:
                         if winner == match.user1:
                             print("angery")
@@ -465,15 +414,39 @@ def submit_score(request, score):
                             match.score2 = 2
                         else:
                             match.score2 = 1
+                    messages.add_message(request, messages.INFO,
+                                         'Twój wynik został zapisany')
                     if match.score1 != 0 and match.score2 != 0:
                         if match.score1 == match.score2:
                             match.score = match.score1
+                            messages.add_message(request, messages.INFO,
+                                                 'Wyniki zgodne, status zatwierdzony')
+                            if match.matchno != 1:
+                                upper_match = Game.objects.get(tournament=match.tournament, matchno=match.matchno // 2)
+                                if match.score == 1:
+                                    if match.matchno % 2 == 0:
+                                        upper_match.user1 = match.user1
+                                        upper_match.save()
+                                    else:
+                                        upper_match.user2 = match.user1
+                                        upper_match.save()
+                                else:
+                                    if match.matchno % 2 == 0:
+                                        upper_match.user1 = match.user2
+                                        upper_match.save()
+                                    else:
+                                        upper_match.user2 = match.user2
+                                        upper_match.save()
                         else:
+                            messages.add_message(request, messages.INFO,
+                                                 'Wyniki niezgodne, wprowadź zwycięzcę ponownie')
                             match.score1 = 0
                             match.score2 = 0
+                    else:
+                        messages.add_message(request, messages.INFO,
+                                             'System oczekuje na potwierdzenie od Twojego przeciwnika')
                     match.save()
-                    messages.add_message(request, messages.INFO,
-                                         'Wynik spotkania został zapisany')
+
                     return redirect('../' + str(match.tournament_id))
             else:
                 form = SubmitScoreForm(matchid=score)

@@ -1,39 +1,61 @@
 {% extends 'base.html' %}
-
+{% block stylesheet %}
+    <link href="../../Tourn/static/base_style.css" rel="stylesheet">
+{% endblock %}
 {% block title %}{{ tourn.name }}{% endblock %}
-
+{% block user %}
+  {% if user.is_authenticated %}
+    <div class="user-pane"><div id="greeting" class="left-block">Tournaments - śledź rozgrywki online</div>
+    <div class="right-block"><a class="userclicks" href="{% url 'logout' %}">Wyloguj</a> |
+    <a class="userclicks" href="{% url 'password_reset' %}">Zmień hasło</a></div></div>
+{% else %}
+    <div class="user-pane"><div id="greeting" class="left-block">Tournaments - śledź rozgrywki online</div>
+        <div class="right-block">
+            <a class="userclicks" href="{% url 'login' %}">Zaloguj</a> |
+            <a class="userclicks" href="{% url 'signup' %}">Zarejestruj się</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
 {% block content %}
+    <div class="tourntitle">
+    <h1>{{ tourn.name }}</h1>
+    {% if user.id == tourn.organizer_id %}
+        {% if show == True %}
+            <div class="block-center"><a class="orange-button" href="edit">Edytuj informacje</a>
+            <a class="orange-button" href="/tournament/{{ tourn.id }}/add_logo/">Dodaj logo sponsora</a>
+            {% if participants < tourn.participants_limit and show == True and tourn.organizer != user %}
+                <a class="orange-button" href="join">Zapisz się</a>
+            {% endif %}</div>
+        {% endif %}
+    {% endif %}
+    </div>
+    <div class="content">
+    <div class="tourninfo">
     {% if messages %}
     {% for message in messages %}
         <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">{{ message }}</div>
     {% endfor %}
     {% endif %}
-    <p><a href ="/../../">Strona główna</a></p>
-  <h1>{{ tourn.name }}</h1><br>
-    {% if participants < tourn.participants_limit and show == True %}
-        <a href="join">Zapisz się</a>
-    {% endif %}
+    <br>
+
     <p>Dyscsyplina: {{ tourn.discipline }}</p>
     <p>Organizator: {{ organizer }}</p>
     <p>Początek rozgrywek: {{ tourn.start_date }}</p>
     <p>Limit zgłoszeń: {{ tourn.participants_limit }}</p>
     <p>Liczba zgłoszonych zawodników: {{ participants }}</p>
     <p>Koniec przyjmowania zgłoszeń: {{ tourn.registration_deadline }}</p>
-    <iframe width="600" height="500" id="gmap_canvas" src="https://maps.google.com/maps?q={{ tourn.city }}%20{{tourn.street}}%20{{tourn.number}}&t=&z=13&ie=UTF8&iwloc=&output=embed"
+    <iframe class="map" width="600" height="500" id="gmap_canvas" src="https://maps.google.com/maps?q={{ tourn.city }}%20{{tourn.street}}%20{{tourn.number}}&t=&z=13&ie=UTF8&iwloc=&output=embed"
 frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
     {% if logos.count != 0 %}
-        <h4>Loga sponsorów:</h4>
+        <h4>Sponsorzy:</h4>
     {% for logo in logos %}
         <img src="/../{{ logo.image_src }}" alt="logo_sponsora" height="100">
     {% endfor %}
     {% endif %}
     <br>
-    {% if user.id == tourn.organizer_id %}
-        {% if show == True %}
-            <a href="edit">Edytuj informacje</a>
-            <a href="/tournament/{{ tourn.id }}/add_logo/">Dodaj logo sponsora</a>
-        {% endif %}
-    {% endif %}
+    </div>
+    <div>
     {% if show == False %}
         {% for match in games %}
             <p>
@@ -49,8 +71,14 @@ frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
                 {% endif %}
             {% endif %}
             {% if match.user1 == user or match.user2 == user %}
-                {% if match.score == 0 %}
+                {% if match.score1 == 0 and match.user1 == user %}
                     <a href="{% url 'add_score' score=match.id %}">{{ match.date }}</a> {{ match.user1.first_name }} {{ match.user1.last_name}} - {{ match.user2.first_name }} {{ match.user2.last_name}}
+                {% else %}
+                    {% if match.score2 == 0 and match.user2 == user %}
+                        <a href="{% url 'add_score' score=match.id %}">{{ match.date }}</a> {{ match.user1.first_name }} {{ match.user1.last_name}} - {{ match.user2.first_name }} {{ match.user2.last_name}}
+                    {% else %}
+                        {{ match.date }} {{ match.user1.first_name }} {{ match.user1.last_name}} - {{ match.user2.first_name }} {{ match.user2.last_name}}
+                    {% endif %}
                 {% endif %}
             {% else %}
                 {% if match.score != -1 %}
@@ -66,4 +94,6 @@ frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
             </p>
         {% endfor %}
     {% endif %}
+    </div>
+    </div>
 {% endblock %}
