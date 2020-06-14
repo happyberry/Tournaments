@@ -2,6 +2,10 @@
     font-family: sans-serif;
 }
 
+img{
+    margin: 5px;
+}
+
 html, body{
     height: 100%;
 }
@@ -119,6 +123,7 @@ a.tourn_name:active{
     background-color: #bfef14;
     flex-shrink: 0;
     display: flex;
+    padding: 15px;
 }
 
 main {
@@ -153,4 +158,12 @@ main {
 
 .block-center{
     align-self: center;
+}
+
+.add-padding{
+    padding: 15px;
+}
+
+.site-title{
+    color: #e67000;
 }

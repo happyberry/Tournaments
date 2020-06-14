@@ -23,10 +23,10 @@ class AddTournamentForm(ModelForm):
         model = Tournament
         fields = ['name', 'discipline', 'start_date', 'registration_deadline', 'participants_limit', 'city', 'street',
                   'number']
-        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia (DD.MM.RRRR GG:MM:SS)',
-                  'registration_deadline': 'Koniec rejestracji (DD.MM.RRRR GG:MM:SS)',
+        labels = {'name': 'Nazwa', 'discipline': 'Dyscyplina', 'start_date': 'Data rozpoczęcia ',
+                  'registration_deadline': 'Koniec rejestracji',
                   'participants_limit': 'Limit uczestników', 'city': 'Miasto', 'street': 'Ulica', 'number': 'Nr domu'}
-
+        help_texts = {'start_date': 'Format: DD.MM.RRRR GG:MM:SS', 'registration_deadline': 'Format: DD.MM.RRRR GG:MM:SS'}
     '''def clean(self):
         cleaned_data = super().clean()
         if cleaned_data['registration_deadline'] > cleaned_data['start_date']:
@@ -128,7 +128,7 @@ class AddParticipationForm(ModelForm):
         return cleaned_data'''
 
 class SubmitScoreForm(forms.Form):
-    winner = forms.ModelChoiceField(label='Select the winner', queryset=User.objects.all())
+    winner = forms.ModelChoiceField(label='Wskaż zwycięzcę spotkania', queryset=User.objects.all())
 
     def __init__(self, *args, **kwargs):
         matchid = kwargs.pop('matchid', None)  # cache the user object you pass

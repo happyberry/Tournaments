@@ -28,6 +28,13 @@
                 <a class="orange-button" href="join">Zapisz się</a>
             {% endif %}</div>
         {% endif %}
+        {% else %}
+        {% if show == True %}
+            <div class="block-center">
+            {% if participants < tourn.participants_limit and show == True and tourn.organizer != user %}
+                <a class="orange-button" href="join">Zapisz się</a>
+            {% endif %}</div>
+        {% endif %}
     {% endif %}
     </div>
     <div class="content">
@@ -57,6 +64,7 @@ frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><br>
     </div>
     <div>
     {% if show == False %}
+        <h3>Rozgrywane spotkania:</h3>
         {% for match in games %}
             <p>
             {% if match.matchno <= 7 and match.score != -1 %}

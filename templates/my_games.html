@@ -18,6 +18,7 @@
 {% endif %}
 {% endblock %}
 {% block content %}
+    <div class="add-padding">
 {% if length != 0 %}
     {% for obj in object_list %}
     <p>{{ obj.tournament.name }}
@@ -34,9 +35,10 @@
         {% endif %}
         {{obj.date}} <br>
         {{ obj.user1.first_name }} {{ obj.user1.last_name }} - {{ obj.user2.first_name }} {{ obj.user2.last_name }}
-        </p>
+        </p><hr><br>
 {% endfor %}
     {% else %}
     <p class="tourntitle">Brak informacji o nadchodzących spotkaniach</p>
     {% endif %}
+    </div>
 {% endblock %}

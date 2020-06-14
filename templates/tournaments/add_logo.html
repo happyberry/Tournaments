@@ -4,10 +4,11 @@
         <title>Signup</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../../../Tourn/static/form_style.css">
     </head>
     <body>
 {% block content %}
+    <div class="add-padding">
     {% if logos.count != 0 %}
         <h4>Dotychczas dodane loga:</h4>
     {% endif %}
@@ -16,10 +17,15 @@
     {% endfor %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-      {{ form }}
-      <button type="submit">Dodaj logo</button>
-  </form>
-    <a href="../">Zakończ</a>
+      {% for field in form %}
+          {{ field.label }}:<br>
+          {{ field }}
+          {{ field.errors }}
+    {% endfor %}
+      <button class="orange-button" type="submit">Dodaj logo</button>
+  </form><br><br>
+    <a class="orange-button" href="../">Zakończ</a>
+    </div>
 {% endblock %}
     </body>
 </html>

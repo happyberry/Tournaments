@@ -8,15 +8,14 @@
     </head>
     <body>
     <main class="center-items">
+        <h1 class="site-title">Tournaments</h1>
     <div class="center-items">
-{% block content %}
   <h2>Zaloguj się</h2>
   <form class="center-items" method="post">
     {% csrf_token %}
       {{ form.as_p }}
     <button class="orange-button" type="submit">Zaloguj się</button>
   </form>
-{% endblock %}
     </div>
         <img src="../../Tourn/static/tennis.png" width="20%">
     <div><a class="orange-button" href = "../password_reset">Zapomniałem hasła</a>

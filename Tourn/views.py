@@ -182,7 +182,9 @@ def generate_bracket(tourn, participants_number):
     participants = list(Participation.objects.filter(tournament=tourn).order_by('rank'))
     games = []
     for i in range(1, limit):
-        days = n + 2 - round(math.log(i, 2))
+        days = n - round(math.log(i, 2))
+        if days <= 0:
+            days = 0
         newgame = Game(matchno=i,date=tourn.start_date + datetime.timedelta(days=days), tournament=tourn, score = 0, score1 = 0, score2 = 0)
         games.append(newgame)
     for i in range(0, len(bracket_sequence), 2):
@@ -379,11 +381,11 @@ def join_tournament(request, id):
                 participation.user = request.user
                 participation.tournament = tourn
                 participation.save()
-                messages.add_message(request, messages.INFO, "Gratulacje, zgłoszenie przyjęte! Możesz śledzić ten turniej w zakładce 'Moje spotkania'")
+                messages.add_message(request, messages.INFO, "Gratulacje, zgłoszenie przyjęte! Możesz śledzić ten turniej w zakładce 'Moje turnieje (rejestracja)' oraz 'Nadchodzące spotkania''")
                 return redirect('../')
         else:
             form = AddParticipationForm(tournament=tourn, user=request.user)
-        return render(request, 'tournaments/join.html', {'form': form})
+        return render(request, 'tournaments/join.html', {'form': form, 'tourn': tourn})
     else:
         return redirect('login')
 

@@ -8,26 +8,26 @@
     </head>
     <body>
 {% block content %}
-    <div class="center-items,add-padding">
-  <h2>Zarejestruj się</h2>
-  <form method="post">
+    <div class="add-padding">
+    <h2>Zarejestruj się</h2>
+    <form method="post" action="" onsubmit="return confirm('Czy na pewno chcesz utworzyć konto w serwisie Tournaments?');">
     {% csrf_token %}
       {% for field in form %}
       <p>
         {{ field.label_tag }}<br>
         {{ field }}
         {% if field.help_text %}
-          <small style="display: none">{{ field.help_text }}</small>
+          <small>{{ field.help_text }}</small>
         {% endif %}
           <div class="errorlist">
         {% for error in field.errors %}
-          <p style="color: red">{{ error }}</p>
+          {{ error }}<br>
         {% endfor %}
-          </div>
+            </div>
       </p>
       {% endfor %}
-    <button type="submit">Zarejestruj się</button>
-  </form>
+    <button class="orange-button" type="submit">Zarejestruj się</button>
+    </form>
     </div>
 {% endblock %}
     </body>

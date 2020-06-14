@@ -4,21 +4,23 @@
         <title>Utwórz turniej</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../Tourn/static/form_style.css">
     </head>
     <body>
 {% block content %}
+    <div class="add-padding">
   <h2>Utwórz turniej</h2>
-  <form method="post">
+  <form method="post" action="" onsubmit="return confirm('Czy na pewno chcesz utworzyć turniej o podanych informacjach?')">
     {% csrf_token %}
       {% for field in form %}
-          {{ field.label }}
-          {{ field }}
+          {{ field.label }}<br>
+          {{ field }} {{ field.help_text }}
           {{ field.errors }}
           <br>
     {% endfor %}
-      <button type="submit">Utwórz</button>
+      <input type="submit" class="orange-button" value="Utwórz">
   </form>
+    </div>
 {% endblock %}
     </body>
 </html>
