@@ -425,6 +425,7 @@ def submit_score(request, score):
                                                  'Wyniki zgodne, status zatwierdzony')
                             if match.matchno != 1:
                                 upper_match = Game.objects.get(tournament=match.tournament, matchno=match.matchno // 2)
+                                upper_match.score = 0
                                 if match.score == 1:
                                     if match.matchno % 2 == 0:
                                         upper_match.user1 = match.user1
