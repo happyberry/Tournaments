@@ -90,7 +90,7 @@ def post_list(request):
     return render(request, "home.html", context)
 
 
-def my_tourns(request):
+def my_tourns(request):#turnieje - uczestnictwo
     participations = Participation.objects.filter(user=request.user).order_by('-tournament__start_date')
     queryset_list = []
     for p in participations:
@@ -127,7 +127,7 @@ def my_games(request):
     return render(request, "my_games.html", context)
 
 
-def my_tourns_org(request):
+def my_tourns_org(request):#turnieje - organizacja
     tourns = Tournament.objects.filter(organizer=request.user).order_by('-start_date')
     tourns_list = list(tourns)
     paginator = Paginator(tourns_list, 10)  # posts per page
@@ -284,7 +284,7 @@ def edit_tournament(request, id):
         participants = Participation.objects.filter(tournament=tourn)
         participants_number = len(participants)
     except Participation.DoesNotExist:
-        pass
+        participants_number = 0
     if request.user.is_authenticated:
         if request.method == 'POST':
             if request.user.id == tourn.organizer_id and tourn.registration_deadline > timezone.now():
@@ -359,7 +359,7 @@ def join_tournament(request, id):
         participants = Participation.objects.filter(tournament=tourn)
         participants_number = len(participants)
     except Participation.DoesNotExist:
-        pass
+        participants_number = 0
     if request.user.is_authenticated:
         if request.method == 'POST':
             form = AddParticipationForm(request.POST, tournament=tourn, user=request.user)
